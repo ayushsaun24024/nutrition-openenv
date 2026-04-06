@@ -1,0 +1,46 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+.envrc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment variables (IMPORTANT)
+.env
+
+# Python build files
+build/
+dist/
+*.egg-info/
+
+# Cache folders
+.cache/
+
+# Ignore local uv cache but KEEP lock file
+.uv/
+
+# Keep uv.lock (required for submission)
+# DO NOT ignore uv.lock
+
+# Docker
+*.tar
+
+# Misc
+*.sqlite3

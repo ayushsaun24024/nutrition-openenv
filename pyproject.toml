@@ -1,0 +1,17 @@
+[project]
+name = "nutrition-env"
+version = "0.1.0"
+description = "OpenEnv Nutrition Decision Environment"
+authors = [{ name = "Ayush" }]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "openenv-core>=0.2.0"
+]
+
+[project.scripts]
+server = "server.app:main"
+
+[tool.setuptools]
+packages = ["my_env", "server"]

@@ -1,0 +1,34 @@
+name: nutrition-env
+description: >
+  A simplified nutritional decision-making environment where an agent selects foods
+  to reach a daily calorie target while avoiding overeating or undernutrition.
+
+version: 1.0.0
+
+tasks:
+  - id: easy
+    description: Reach the target calorie intake.
+    max_steps: 10
+
+  - id: medium
+    description: Reach calorie target efficiently with fewer steps.
+    max_steps: 10
+
+  - id: hard
+    description: Reach calorie target precisely without overshooting.
+    max_steps: 10
+
+reward_range: [0.0, 1.0]
+
+observation_space:
+  calories_consumed: float
+  calorie_target: float
+  hunger: float
+  step: int
+
+action_space:
+  food: string
+
+metadata:
+  author: "Ayush Saun"
+  difficulty: ["easy", "medium", "hard"]
