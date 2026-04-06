@@ -1,16 +1,23 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from my_env.env import NutritionEnv
-from my_env.models import Action
 import uvicorn
+from fastapi import FastAPI
+from my_env.models import Action
+from typing import List, Literal
+from my_env.env import NutritionEnv
+from pydantic import BaseModel, Field
 
-app = FastAPI()
+app = FastAPI(title="Nutrition Environment API")
 
 env = NutritionEnv()
 
-
 class StepRequest(BaseModel):
-    food: str
+    food: Literal["apple", "rice", "chicken", "snack", "milk", "egg", "skip"] = Field(
+        ...,
+        description="Select a food item",
+        example="rice"
+    )
+    
+class RolloutRequest(BaseModel):
+    actions: List[Literal["apple", "rice", "chicken", "snack", "milk", "egg", "skip"]]
 
 
 @app.post("/reset")
@@ -26,29 +33,42 @@ def reset():
 
 @app.post("/step")
 def step(req: StepRequest):
-    try:
-        action = Action(food=req.food)
-        obs, reward, done, info = env.step(action)
-
-        return {
-            "observation": obs.dict(),
-            "reward": reward,
-            "done": done,
-            "info": info
-        }
-
-    except Exception as e:
-        return {
-            "observation": {},
-            "reward": 0.0,
-            "done": True,
-            "info": {"error": str(e)}
-        }
+    obs, reward, done, info = env.step(Action(food=req.food))
+    return {
+        "observation": obs.dict(),
+        "reward": reward,
+        "done": done,
+        "info": info
+    }
 
 
 @app.get("/state")
 def state():
     return env.state()
+
+@app.post("/rollout")
+def rollout(req: RolloutRequest):
+    obs = env.reset()
+    trajectory = []
+
+    for step_idx, action in enumerate(req.actions, start=1):
+        obs, reward, done, info = env.step(Action(food=action))
+
+        trajectory.append({
+            "step": step_idx,
+            "action": action,
+            "observation": obs.dict(),
+            "reward": reward,
+            "done": done
+        })
+
+        if done:
+            break
+
+    return {
+        "trajectory": trajectory,
+        "final_state": env.state()
+    }
 
 @app.get("/")
 def root():
