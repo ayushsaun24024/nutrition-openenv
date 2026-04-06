@@ -32,23 +32,42 @@ def log_end(success, steps, score, rewards):
     print(f"[END] success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}", flush=True)
 
 
-def get_action_from_model(obs):
+def get_action_from_model(obs, prev_reward=None, reward_trend=None):
     prompt = f"""
-You are controlling a nutrition agent.
+You are an intelligent nutritional decision-making agent.
 
-Goal:
-Reach calorie target efficiently without overshooting.
+Objective:
+Make balanced dietary decisions over time, not just immediate gains.
+
+Goals:
+- Reach calorie target efficiently
+- Avoid overshooting calories
+- Maintain balanced nutrition (protein, carbs, fat)
+- Avoid excessive sugar and fat
+- Avoid repeating the same food excessively
+- Avoid over-reliance on a single nutrient source (e.g., only protein)
 
 Current state:
-Calories consumed: {obs['calories_consumed']}
-Target: {obs['calorie_target']}
-Hunger: {obs['hunger']}
+- Calories consumed: {obs['calories_consumed']}
+- Target calories: {obs['calorie_target']}
+- Hunger: {obs['hunger']}
+- Previous reward: {prev_reward if prev_reward is not None else "N/A"}
+- Reward trend: {reward_trend if reward_trend else "N/A"}
 
 Available actions:
-apple (95 cal), rice (200 cal), chicken (250 cal), snack (300 cal), skip (0 cal)
+apple, rice, chicken, snack, milk, egg, skip
+
+Important behavioral rules:
+- Do NOT repeat the same food too many times in a row
+- If a food has been used repeatedly, choose a different one
+- After sufficient protein intake, shift towards balanced foods
+- Think ahead to avoid penalties from imbalance
+- If reward decreased recently, try a different strategy
+- keep it as a mix of fruits, veges, rice and chicken not concentrated towards one
+- cnosider fibres, protiens, vitamic (vitamic - c) and all make sure it is balanced diet
 
 Respond with ONLY one word:
-apple OR rice OR chicken OR snack OR skip
+apple OR rice OR chicken OR snack OR milk OR egg OR skip
 """
 
     try:
@@ -82,12 +101,30 @@ def main():
 
     log_start()
 
+    prev_reward = None
+    prev_prev_reward = None
+
     try:
         res = requests.post(f"{ENV_URL}/reset").json()
         obs = res["observation"]
 
         for step in range(1, MAX_STEPS + 1):
-            action = get_action_from_model(obs)
+
+            if prev_reward is None or prev_prev_reward is None:
+                trend = "N/A"
+            else:
+                if prev_reward > prev_prev_reward:
+                    trend = "increasing"
+                elif prev_reward < prev_prev_reward:
+                    trend = "decreasing"
+                else:
+                    trend = "stable"
+
+            action = get_action_from_model(
+                obs,
+                prev_reward=prev_reward,
+                reward_trend=trend
+            )
 
             res = requests.post(
                 f"{ENV_URL}/step",
@@ -103,6 +140,9 @@ def main():
             steps_taken = step
 
             log_step(step, action, reward, done, error)
+
+            prev_prev_reward = prev_reward
+            prev_reward = reward
 
             if done:
                 break

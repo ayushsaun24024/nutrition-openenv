@@ -15,6 +15,19 @@ Agents interact with the environment via:
 and learn to optimize dietary decisions over time.
 
 ---
+## 🌍 Real-World Modeling
+
+This environment goes beyond simple calorie tracking by modeling realistic dietary decision-making dynamics:
+
+- **Bidirectional regulation**: penalizes both overeating and undereating
+- **Physiological estimation**: hunger is dynamically adjusted based on intake and protein-driven satiety
+- **Multi-objective optimization**: balances calories, protein intake, sugar, and fat
+- **Behavioral consistency**: discourages repetitive or unhealthy patterns
+- **Adaptive decision context**: incorporates step-wise progression and late-stage precision requirements
+
+Unlike toy RL environments, this system captures trade-offs that resemble real human dietary choices under constraints, making it suitable for evaluating intelligent agents in health-related decision-making scenarios.
+
+---
 
 ## 🎯 Objective
 
