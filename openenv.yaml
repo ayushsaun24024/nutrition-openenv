@@ -9,14 +9,17 @@ tasks:
   - id: easy
     description: Reach the target calorie intake.
     max_steps: 10
+    grader: my_env.tasks.EasyTask
 
   - id: medium
     description: Reach calorie target efficiently with fewer steps.
     max_steps: 10
+    grader: my_env.tasks.MediumTask
 
   - id: hard
     description: Reach calorie target precisely without overshooting.
     max_steps: 10
+    grader: my_env.tasks.HardTask
 
 reward_range: [0.0, 1.0]
 

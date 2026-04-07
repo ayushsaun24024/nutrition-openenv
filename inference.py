@@ -8,7 +8,7 @@ API_KEY = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY")
 
 ENV_URL = os.getenv("ENV_URL", "https://ayushsaun-nutrition-openenv.hf.space")
 
-TASK_NAME = "nutrition-task"
+TASK_NAME = "hard"
 BENCHMARK = "nutrition-env"
 
 MAX_STEPS = 10
@@ -107,7 +107,7 @@ def main():
     prev_prev_reward = None
 
     try:
-        res = requests.post(f"{ENV_URL}/reset", timeout=30).json()
+        res = requests.post(f"{ENV_URL}/reset", json={"task": TASK_NAME}, timeout=30).json()
         obs = res.get("observation", {})
 
         for step in range(1, MAX_STEPS + 1):
