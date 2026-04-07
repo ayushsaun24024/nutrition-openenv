@@ -6,7 +6,7 @@ API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY")
 
-ENV_URL = os.getenv("ENV_URL", "http://127.0.0.1:8000")
+ENV_URL = os.getenv("ENV_URL", "https://ayushsaun-nutrition-openenv.hf.space")
 
 TASK_NAME = "nutrition-task"
 BENCHMARK = "nutrition-env"
@@ -48,9 +48,11 @@ Goals:
 - Avoid over-reliance on a single nutrient source (e.g., only protein)
 
 Current state:
-- Calories consumed: {obs['calories_consumed']}
-- Target calories: {obs['calorie_target']}
-- Hunger: {obs['hunger']}
+- Current step: {obs.get('step', '?')} / {MAX_STEPS}
+- Remaining steps: {MAX_STEPS - obs.get('step', 0)}
+- Calories consumed: {obs.get('calories_consumed', 0)}
+- Target calories: {obs.get('calorie_target', 2000)}
+- Hunger: {obs.get('hunger', 0.5)}
 - Previous reward: {prev_reward if prev_reward is not None else "N/A"}
 - Reward trend: {reward_trend if reward_trend else "N/A"}
 
@@ -83,7 +85,7 @@ apple OR rice OR chicken OR snack OR milk OR egg OR skip
 
         action = response.choices[0].message.content.strip().lower()
 
-        if action not in ["apple", "rice", "chicken", "snack", "skip"]:
+        if action not in ["apple", "rice", "chicken", "snack", "milk", "egg", "skip"]:
             return "rice"
 
         return action
@@ -105,31 +107,20 @@ def main():
     prev_prev_reward = None
 
     try:
-        res = requests.post(f"{ENV_URL}/reset").json()
-        obs = res["observation"]
+        res = requests.post(f"{ENV_URL}/reset", timeout=30).json()
+        obs = res.get("observation", {})
 
         for step in range(1, MAX_STEPS + 1):
-
             if prev_reward is None or prev_prev_reward is None:
                 trend = "N/A"
             else:
-                if prev_reward > prev_prev_reward:
-                    trend = "increasing"
-                elif prev_reward < prev_prev_reward:
-                    trend = "decreasing"
-                else:
-                    trend = "stable"
+                trend = "increasing" if prev_reward > prev_prev_reward else (
+                    "decreasing" if prev_reward < prev_prev_reward else "stable"
+                )
 
-            action = get_action_from_model(
-                obs,
-                prev_reward=prev_reward,
-                reward_trend=trend
-            )
+            action = get_action_from_model(obs, prev_reward=prev_reward, reward_trend=trend)
 
-            res = requests.post(
-                f"{ENV_URL}/step",
-                json={"food": action}
-            ).json()
+            res = requests.post(f"{ENV_URL}/step", json={"food": action}, timeout=30).json()
 
             obs = res.get("observation", {})
             reward = res.get("reward", 0.0)
@@ -149,9 +140,11 @@ def main():
 
         if rewards:
             score = sum(rewards) / len(rewards)
-
         score = max(0.0, min(score, 1.0))
         success = score >= SUCCESS_SCORE_THRESHOLD
+
+    except Exception as e:
+        print(f"[DEBUG] Fatal error: {e}", flush=True)
 
     finally:
         log_end(success, steps_taken, score, rewards)
