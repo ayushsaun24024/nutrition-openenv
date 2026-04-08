@@ -11,6 +11,9 @@ app = FastAPI(title="Nutrition Environment API")
 env = NutritionEnv()
 current_task_name = "easy"
 
+class GraderRequest(BaseModel):
+    task: str
+    observation: dict
 
 class StepRequest(BaseModel):
     food: Literal["apple", "rice", "chicken", "snack", "milk", "egg", "skip"] = Field(
@@ -52,20 +55,20 @@ def list_tasks():
     }
     
 @app.post("/grader")
-def grader(task: str, observation: dict):
-    if task not in TASKS:
-        return {"task": task, "score": 0.01}
+def grader(req: GraderRequest):
+    if req.task not in TASKS:
+        return {"task": req.task, "score": 0.01}
 
-    grader_fn = TASKS[task]
+    grader_fn = TASKS[req.task]
 
     try:
-        score = grader_fn(observation=observation, info={})
+        score = grader_fn(observation=req.observation, info={})
         score = max(0.01, min(0.99, float(score)))
     except Exception:
         score = 0.01
 
     return {
-        "task": task,
+        "task": req.task,
         "score": score
     }
 
