@@ -108,7 +108,7 @@ def main():
 
     try:
         res = requests.post(f"{ENV_URL}/reset", json={"task": TASK_NAME}, timeout=30).json()
-        obs = res.get("observation", {})
+        obs = res.get("observation") or {}
 
         for step in range(1, MAX_STEPS + 1):
             if prev_reward is None or prev_prev_reward is None:
@@ -125,7 +125,7 @@ def main():
             obs = res.get("observation", {})
             reward = res.get("reward", 0.0)
             done = res.get("done", False)
-            error = res.get("info", {}).get("error")
+            error = res.get("info", {}).get("error") or None
 
             rewards.append(reward)
             steps_taken = step
