@@ -28,19 +28,29 @@ class RolloutRequest(BaseModel):
 
 @app.get("/tasks")
 def list_tasks():
-    grader_map = {
-        "easy":   "my_env.tasks.EasyTask",
-        "medium": "my_env.tasks.MediumTask",
-        "hard":   "my_env.tasks.HardTask",
-    }
     return {
         "tasks": [
             {
-                "name": t.name,
-                "description": t.description,
-                "grader": grader_map[t.name]
+                "name": "easy",
+                "description": "Reach the target calorie intake.",
+                "grader": "my_env.tasks:easy_grader",
+                "max_steps": 10,
+                "reward_range": {"min": 0.0, "max": 1.0}
+            },
+            {
+                "name": "medium",
+                "description": "Reach calorie target efficiently with fewer steps.",
+                "grader": "my_env.tasks:medium_grader",
+                "max_steps": 10,
+                "reward_range": {"min": 0.0, "max": 1.0}
+            },
+            {
+                "name": "hard",
+                "description": "Reach calorie target precisely without overshooting.",
+                "grader": "my_env.tasks:hard_grader",
+                "max_steps": 10,
+                "reward_range": {"min": 0.0, "max": 1.0}
             }
-            for t in TASKS.values()
         ]
     }
 
@@ -62,8 +72,8 @@ def reset(req: ResetRequest = None):
 def step(req: StepRequest):
     obs, reward, done, info = env.step(Action(food=req.food))
     if done:
-        task = TASKS[current_task_name]
-        info["grader_score"] = task.grade(
+        grader_fn = TASKS[current_task_name]
+        info["grader_score"] = grader_fn(
             calories_consumed=obs.calories_consumed,
             calorie_target=obs.calorie_target,
             steps_taken=obs.step

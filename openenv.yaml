@@ -9,19 +9,21 @@ tasks:
   - name: easy
     description: Reach the target calorie intake.
     max_steps: 10
-    grader: my_env.tasks.EasyTask
+    grader: my_env.tasks:easy_grader
 
   - name: medium
     description: Reach calorie target efficiently with fewer steps.
     max_steps: 10
-    grader: my_env.tasks.MediumTask
+    grader: my_env.tasks:medium_grader
 
   - name: hard
     description: Reach calorie target precisely without overshooting.
     max_steps: 10
-    grader: my_env.tasks.HardTask
+    grader: my_env.tasks:hard_grader
 
-reward_range: [0.0, 1.0]
+reward_range:
+  min: 0.0
+  max: 1.0
 
 observation_space:
   calories_consumed: float
