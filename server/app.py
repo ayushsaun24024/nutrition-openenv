@@ -1,25 +1,26 @@
 import uvicorn
 from fastapi import FastAPI
-from my_env.tasks import TASKS
 from my_env.models import Action
-from my_env.env import NutritionEnv
-from pydantic import BaseModel, Field
 from typing import List, Literal, Optional
+from my_env.env import NutritionEnv
+from my_env.tasks import TASKS
+from pydantic import BaseModel, Field
 
 app = FastAPI(title="Nutrition Environment API")
 
 env = NutritionEnv()
 current_task_name = "easy"
 
+
 class StepRequest(BaseModel):
     food: Literal["apple", "rice", "chicken", "snack", "milk", "egg", "skip"] = Field(
-        ...,
-        description="Select a food item",
-        example="rice"
+        ..., description="Select a food item", example="rice"
     )
+
 
 class ResetRequest(BaseModel):
     task: Optional[str] = "easy"
+
 
 class RolloutRequest(BaseModel):
     actions: List[Literal["apple", "rice", "chicken", "snack", "milk", "egg", "skip"]]
@@ -76,7 +77,6 @@ def state():
 def rollout(req: RolloutRequest):
     obs = env.reset()
     trajectory = []
-
     for step_idx, action in enumerate(req.actions, start=1):
         obs, reward, done, info = env.step(Action(food=action))
         trajectory.append({
@@ -88,11 +88,7 @@ def rollout(req: RolloutRequest):
         })
         if done:
             break
-
-    return {
-        "trajectory": trajectory,
-        "final_state": env.state()
-    }
+    return {"trajectory": trajectory, "final_state": env.state()}
 
 
 @app.get("/")
@@ -101,7 +97,7 @@ def root():
 
 
 def main():
-    uvicorn.run("server.app:app", host="0.0.0.0", port=8000)
+    uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
 
 
 if __name__ == "__main__":
