@@ -28,9 +28,18 @@ class RolloutRequest(BaseModel):
 
 @app.get("/tasks")
 def list_tasks():
+    grader_map = {
+        "easy":   "my_env.tasks.EasyTask",
+        "medium": "my_env.tasks.MediumTask",
+        "hard":   "my_env.tasks.HardTask",
+    }
     return {
         "tasks": [
-            {"id": t.name, "description": t.description}
+            {
+                "name": t.name,
+                "description": t.description,
+                "grader": grader_map[t.name]
+            }
             for t in TASKS.values()
         ]
     }
