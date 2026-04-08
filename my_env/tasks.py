@@ -1,5 +1,5 @@
-def clamp(x, low=0.0, high=1.0):
-    return max(low, min(x, high))
+def clamp(score):
+    return max(0.01, min(0.99, float(score)))
 
 
 def easy_grader(observation, info=None):
@@ -7,7 +7,9 @@ def easy_grader(observation, info=None):
     calorie_target = observation.get("calorie_target", 1)
 
     diff = abs(calorie_target - calories_consumed)
-    return max(0.0, min(1.0, 1.0 - (diff / calorie_target)))
+    score = 1.0 - (diff / calorie_target)
+
+    return clamp(score)
 
 
 def medium_grader(observation, info=None):
@@ -19,7 +21,9 @@ def medium_grader(observation, info=None):
     base = 1.0 - (diff / calorie_target)
     penalty = steps_taken / 10
 
-    return max(0.0, min(1.0, base * (1 - 0.3 * penalty)))
+    score = base * (1 - 0.3 * penalty)
+
+    return clamp(score)
 
 
 def hard_grader(observation, info=None):
@@ -38,7 +42,7 @@ def hard_grader(observation, info=None):
 
     score = base - (0.5 * overshoot) - (0.3 * penalty)
 
-    return max(0.0, min(1.0, score))
+    return clamp(score)
 
 
 TASKS = {

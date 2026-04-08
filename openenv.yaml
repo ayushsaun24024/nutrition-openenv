@@ -7,17 +7,14 @@ version: 1.0.0
 
 tasks:
   - name: easy
-    description: Reach the target calorie intake.
     max_steps: 10
     grader: my_env.tasks:easy_grader
 
   - name: medium
-    description: Reach calorie target efficiently with fewer steps.
     max_steps: 10
     grader: my_env.tasks:medium_grader
 
   - name: hard
-    description: Reach calorie target precisely without overshooting.
     max_steps: 10
     grader: my_env.tasks:hard_grader
 

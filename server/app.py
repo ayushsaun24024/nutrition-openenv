@@ -34,24 +34,39 @@ def list_tasks():
                 "name": "easy",
                 "description": "Reach the target calorie intake.",
                 "grader": "my_env.tasks:easy_grader",
-                "max_steps": 10,
-                "reward_range": {"min": 0.0, "max": 1.0}
+                "max_steps": 10
             },
             {
                 "name": "medium",
                 "description": "Reach calorie target efficiently with fewer steps.",
                 "grader": "my_env.tasks:medium_grader",
-                "max_steps": 10,
-                "reward_range": {"min": 0.0, "max": 1.0}
+                "max_steps": 10
             },
             {
                 "name": "hard",
                 "description": "Reach calorie target precisely without overshooting.",
                 "grader": "my_env.tasks:hard_grader",
-                "max_steps": 10,
-                "reward_range": {"min": 0.0, "max": 1.0}
+                "max_steps": 10
             }
         ]
+    }
+    
+@app.post("/grader")
+def grader(task: str, observation: dict):
+    if task not in TASKS:
+        return {"task": task, "score": 0.01}
+
+    grader_fn = TASKS[task]
+
+    try:
+        score = grader_fn(observation=observation, info={})
+        score = max(0.01, min(0.99, float(score)))
+    except Exception:
+        score = 0.01
+
+    return {
+        "task": task,
+        "score": score
     }
 
 
@@ -71,14 +86,10 @@ def reset(req: ResetRequest = None):
 @app.post("/step")
 def step(req: StepRequest):
     obs, reward, done, info = env.step(Action(food=req.food))
+
     if done:
-        grader_fn = TASKS[current_task_name]
-        info["grader_score"] = grader_fn(
-            calories_consumed=obs.calories_consumed,
-            calorie_target=obs.calorie_target,
-            steps_taken=obs.step
-        )
         info["task"] = current_task_name
+
     return {
         "observation": obs.dict(),
         "reward": reward,
